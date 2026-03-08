@@ -68,7 +68,30 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
-DATABASES = {"default": env.db_url_config(DATABASE_URL)}
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT", "5432")
+
+if os.environ.get("DATABASE_URL"):
+    # Preferred option for Docker/Azure and most cloud providers.
+    DATABASES = {"default": env.db_url_config(DATABASE_URL)}
+elif all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
+    # Fallback option when platform provides separate DB_* variables.
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": DB_NAME,
+            "USER": DB_USER,
+            "PASSWORD": DB_PASSWORD,
+            "HOST": DB_HOST,
+            "PORT": DB_PORT,
+        }
+    }
+else:
+    # Local fallback for quick start.
+    DATABASES = {"default": env.db_url_config(DATABASE_URL)}
 
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -121,3 +144,28 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
 }
+
+# Redis/cache foundation (prepared for currency rates and utility data).
+REDIS_URL = os.environ.get("REDIS_URL", "")
+EXCHANGE_RATES_CACHE_TTL = int(os.environ.get("EXCHANGE_RATES_CACHE_TTL", "300"))
+EXCHANGE_RATES_CACHE_KEY = os.environ.get(
+    "EXCHANGE_RATES_CACHE_KEY", "exchange_rates_current"
+)
+
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+            "TIMEOUT": EXCHANGE_RATES_CACHE_TTL,
+            "KEY_PREFIX": "z_nbp",
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "z-nbp-local-cache",
+            "TIMEOUT": EXCHANGE_RATES_CACHE_TTL,
+        }
+    }

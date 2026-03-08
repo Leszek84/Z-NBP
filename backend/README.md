@@ -114,11 +114,50 @@ CORS_ALLOW_ALL_ORIGINS=False
 
 # PostgreSQL (np. Docker):
 # DATABASE_URL=postgres://postgres:postgres@db:5432/z_nbp
+
+# PostgreSQL (alternatywa z osobnymi zmiennymi):
+# DB_NAME=z_nbp
+# DB_USER=postgres
+# DB_PASSWORD=postgres
+# DB_HOST=localhost
+# DB_PORT=5432
+
+# Redis (fundament pod cache, np. kursy walut):
+# REDIS_URL=redis://localhost:6379/1
+# EXCHANGE_RATES_CACHE_TTL=300
+# EXCHANGE_RATES_CACHE_KEY=exchange_rates_current
 ```
 Wazne:
 
 - w produkcji ustaw silny `DJANGO_SECRET_KEY`,
-- przy przejsciu na Postgres wystarczy ustawic `DATABASE_URL`.
+- przy przejsciu na Postgres wystarczy ustawic `DATABASE_URL` lub zestaw `DB_*`,
+- Redis jest skonfigurowany jako warstwa cache (na razie fundament).
+
+## Uruchomienie przez Docker
+
+Uruchomienie:
+
+```bash
+docker compose up --build
+```
+
+Co startuje:
+
+- `backend` (Django) na `http://127.0.0.1:8000`
+- `postgres` (PostgreSQL 18)
+- `redis` (Redis 8)
+
+Zatrzymanie:
+
+```bash
+docker compose down
+```
+
+Reset wolumenow bazy/cache:
+
+```bash
+docker compose down -v
+```
 
 ## Tworzenie konta
 
