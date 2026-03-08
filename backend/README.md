@@ -173,7 +173,7 @@ Wylogowanie (uniewaznienie refresh tokenu):
 - cel: szybki status aplikacji,
 - odpowiedz: `{"status": "ok"}`.
 
-1. `POST /api/auth/register/`
+2. `POST /api/auth/register/`
 
 - cel: rejestracja nowego uzytkownika,
 - body:
@@ -186,7 +186,7 @@ Wylogowanie (uniewaznienie refresh tokenu):
 }
 ```
 
-1. `POST /api/auth/login/`
+3. `POST /api/auth/login/`
 
 - cel: logowanie po `username` lub `email`,
 - body:
@@ -198,7 +198,7 @@ Wylogowanie (uniewaznienie refresh tokenu):
 }
 ```
 
-1. `POST /api/auth/token/refresh/`
+4. `POST /api/auth/token/refresh/`
 
 - cel: wydanie nowego access tokenu,
 - body:
@@ -230,11 +230,11 @@ lub:
 }
 ```
 
-1. `GET /api/auth/me/`
+2. `GET /api/auth/me/`
 
 - cel: pobranie profilu aktualnie zalogowanego uzytkownika.
 
-1. `PATCH /api/auth/me/`
+3. `PATCH /api/auth/me/`
 
 - cel: aktualizacja wybranych pol profilu,
 - przyklad body:
@@ -246,7 +246,7 @@ lub:
 }
 ```
 
-1. `DELETE /api/auth/me/`
+4. `DELETE /api/auth/me/`
 
 - cel: usuniecie aktualnego konta.
 
@@ -291,10 +291,10 @@ Testy obejmuja m.in.:
 - sprawdz czy token nie wygasl,
 - w razie potrzeby odswiez token przez `/api/auth/token/refresh/`.
 
-1. Blad CORS w przegladarce
+2. Blad CORS w przegladarce
 
 - sprawdz `CORS_ALLOW_ALL_ORIGINS` i konfiguracje frontendowego hosta.
 
-1. Brak tabel w bazie
+3. Brak tabel w bazie
 
 - wykonaj `python manage.py migrate`.
