@@ -1,22 +1,40 @@
 """Django settings for the project."""
 
 from datetime import timedelta
-import os
 from pathlib import Path
 
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-env = environ.Env(DEBUG=(bool, True))
-environ.Env.read_env(BASE_DIR / ".env")
+env = environ.Env(
+    DEBUG=(bool, True),
+    DJANGO_SECRET_KEY=(
+        str, "django-insecure-dev-only-change-me",
+    ),
+    ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
+    DATABASE_URL=(
+        str, f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    ),
+    CORS_ALLOW_ALL_ORIGINS=(bool, False),
+    REDIS_URL=(str, ""),
+    EXCHANGE_RATES_CACHE_TTL=(int, 300),
+    EXCHANGE_RATES_CACHE_KEY=(str, "exchange_rates_current"),
+)
+
+# Env precedence (highest wins):
+# 1. Process env: Docker Compose / Azure App Settings / shell
+# 2. backend/.env: optional file for local dev (no Docker)
+# 3. Defaults above: dev fallback (DEBUG=True, SQLite)
+_env_path = BASE_DIR / ".env"
+if _env_path.is_file():
+    environ.Env.read_env(_env_path, overwrite=False)
 
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-dev-only-change-me")
-DEBUG = env.bool("DEBUG", default=True)
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+DEBUG = env.bool("DEBUG")
+SECRET_KEY = str(env("DJANGO_SECRET_KEY"))
+ALLOWED_HOSTS: list[str] = env.list("ALLOWED_HOSTS")
 
 if DEBUG and len(SECRET_KEY) < 32:
-    # Avoid short-key JWT warnings in local development.
     SECRET_KEY = f"{SECRET_KEY}-local-dev-padding-min-32"
 
 
@@ -38,6 +56,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -67,45 +86,25 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-
-if os.environ.get("DATABASE_URL"):
-    # Preferred option for Docker/Azure and most cloud providers.
-    DATABASES = {"default": env.db_url_config(DATABASE_URL)}
-elif all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
-    # Fallback option when platform provides separate DB_* variables.
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": DB_NAME,
-            "USER": DB_USER,
-            "PASSWORD": DB_PASSWORD,
-            "HOST": DB_HOST,
-            "PORT": DB_PORT,
-        }
-    }
-else:
-    # Local fallback for quick start.
-    DATABASES = {"default": env.db_url_config(DATABASE_URL)}
+DATABASES = {"default": env.db()}
 
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".NumericPasswordValidator",
     },
 ]
 
@@ -120,17 +119,22 @@ USE_TZ = True
 
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "accounts.User"
 
-CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS", default=False)
+CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 SIMPLE_JWT = {
@@ -145,12 +149,14 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
-# Redis/cache foundation (prepared for currency rates and utility data).
-REDIS_URL = os.environ.get("REDIS_URL", "")
-EXCHANGE_RATES_CACHE_TTL = int(os.environ.get("EXCHANGE_RATES_CACHE_TTL", "300"))
-EXCHANGE_RATES_CACHE_KEY = os.environ.get(
-    "EXCHANGE_RATES_CACHE_KEY", "exchange_rates_current"
+# Redis/cache foundation.
+REDIS_URL = str(env("REDIS_URL"))
+EXCHANGE_RATES_CACHE_TTL = env.int(
+    "EXCHANGE_RATES_CACHE_TTL",
 )
+EXCHANGE_RATES_CACHE_KEY = str(env(
+    "EXCHANGE_RATES_CACHE_KEY",
+))
 
 if REDIS_URL:
     CACHES = {

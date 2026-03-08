@@ -9,4 +9,7 @@ if [ "${RUN_MIGRATIONS:-1}" = "1" ]; then
   done
 fi
 
+echo "Collecting static files..."
+python manage.py collectstatic --noinput --clear
+
 exec "$@"
