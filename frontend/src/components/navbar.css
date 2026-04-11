@@ -1,0 +1,118 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navbar-brand {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.navbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 36px;
+  flex: 0 1 260px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.navbar-search:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.navbar-search-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.navbar-search-input {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-h);
+  font-family: var(--sans);
+  width: 100%;
+}
+
+.navbar-search-input::placeholder {
+  color: var(--text);
+}
+
+.navbar-nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.navbar-nav-link:hover {
+  color: var(--text-h);
+  background: var(--accent-bg);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-user {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.navbar-btn {
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+  font-family: var(--sans);
+}
+
+.navbar-btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.navbar-btn--ghost:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.navbar-btn--primary {
+  background: var(--text-h);
+  border: 1px solid var(--text-h);
+  color: var(--bg);
+}
+
+.navbar-btn--primary:hover {
+  opacity: 0.85;
+}
