@@ -79,6 +79,44 @@ class AuthApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("password", response.json())
 
+    def test_register_rejects_too_short_password(self):
+        response = self.client.post(
+            self.register_url,
+            {"username": "shorty", "email": "shorty@example.com", "password": "123"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("password", response.json())
+
+    def test_register_fails_for_existing_username(self):
+        self._create_user(username="eve", email="eve@example.com")
+        response = self.client.post(
+            self.register_url,
+            {"username": "eve", "email": "eve2@example.com", "password": "StrongPass123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("username", response.json())
+
+    def test_register_fails_for_existing_email(self):
+        self._create_user(username="eve1", email="duplicate@example.com")
+        response = self.client.post(
+            self.register_url,
+            {"username": "eve2", "email": "duplicate@example.com", "password": "StrongPass123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.json())
+
+    def test_register_fails_for_invalid_email_format(self):
+        response = self.client.post(
+            self.register_url,
+            {"username": "invalidemail", "email": "test@,test.com", "password": "StrongPass123!"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.json())
+
     def test_login_with_username_works(self):
         self._create_user(username="bob", email="bob@example.com")
         response = self.client.post(
