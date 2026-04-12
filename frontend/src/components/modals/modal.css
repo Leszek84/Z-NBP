@@ -93,6 +93,20 @@
 
 .modal-btn {
   background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+@media (prefers-color-scheme: dark){
+  .modal-btn {
+  background: var(--accent);
   color: #000;
   border: none;
   border-radius: 6px;
@@ -102,6 +116,7 @@
   cursor: pointer;
   margin-top: 4px;
   transition: opacity 0.15s, transform 0.1s;
+}
 }
 
 .modal-btn:hover:not(:disabled) {
