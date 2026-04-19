@@ -1,4 +1,6 @@
 .token-card {
+  text-decoration: none;
+  display: flex;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;

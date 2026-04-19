@@ -1,0 +1,34 @@
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 420px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.chart-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: chart-spin 0.7s linear infinite;
+}
+
+@keyframes chart-spin {
+  to { transform: rotate(360deg); }
+}

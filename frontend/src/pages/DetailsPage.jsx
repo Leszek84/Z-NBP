@@ -1,57 +1,137 @@
 import { useEffect, useState } from 'react'
-import { getTrendingTokens } from '../api/gecko.js'
-import { createChart } from 'lightweight-charts';
-import TokenCard from '../components/TokenCard.jsx'
-import './homepage.css'
+import { useParams } from 'react-router-dom'
+import { getPoolDetails, getOHLCV, getTokenPools } from '../api/gecko.js'
+import Chart from '../components/Chart.jsx'
+import MarketSelector from '../components/MarketSelector.jsx'
+import './detailspage.css'
+
+function formatPrice(price) {
+  if (!price) return '—'
+  if (price >= 1000) return '$' + price.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  if (price >= 1) return '$' + price.toFixed(4)
+  if (price >= 0.0001) return '$' + price.toFixed(6)
+  return '$' + price.toExponential(2)
+}
+
+const TIMEFRAMES = [
+  { label: '1D',  value: 'day',    aggregate: 1 },
+  { label: '4H',  value: 'hour',   aggregate: 4 },
+  { label: '1H',  value: 'hour',   aggregate: 1 },
+  { label: '15M', value: 'minute', aggregate: 15 },
+  { label: '5M',  value: 'minute', aggregate: 5 },
+]
 
 export default function DetailsPage() {
-  const [tokens, setTokens] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { network, poolAddress } = useParams()
 
+  const [token, setToken] = useState(null)
+  const [tokenLoading, setTokenLoading] = useState(true)
+
+  const [ohlcv, setOhlcv] = useState([])
+  const [ohlcvLoading, setOhlcvLoading] = useState(true)
+  const [activeTimeframe, setActiveTimeframe] = useState(TIMEFRAMES[0])
+
+  const [markets, setMarkets] = useState([])
+  const [marketsLoading, setMarketsLoading] = useState(false)
+  const [activePool, setActivePool] = useState(poolAddress)
+
+  // Load token details + markets
   useEffect(() => {
-    getTrendingTokens(12)
-      .then(setTokens)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
+    setTokenLoading(true)
+    setToken(null)
+    getPoolDetails(network, poolAddress)
+      .then(data => {
+        setToken(data)
+        setTokenLoading(false)
+        if (data.tokenAddress) {
+          setMarketsLoading(true)
+          return getTokenPools(network, data.tokenAddress)
+        }
+      })
+      .then(pools => { if (pools) { setMarkets(pools); setMarketsLoading(false) } })
+      .catch(() => { setTokenLoading(false); setMarketsLoading(false) })
+  }, [network, poolAddress])
 
-    const chartOptions = { layout: { textColor: 'black', background: { type: 'solid', color: 'white' } } };
-    const chart = createChart(document.getElementById('chart_container'), chartOptions);
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-    upColor: '#26a69a', downColor: '#ef5350', borderVisible: false,
-    wickUpColor: '#26a69a', wickDownColor: '#ef5350',
-    });
-    //TODO: dataset ściągany z api
-    candlestickSeries.setData([
-        { time: '2018-12-22', open: 75.16, high: 82.84, low: 36.16, close: 45.72 },
-        { time: '2018-12-23', open: 45.12, high: 53.90, low: 45.12, close: 48.09 },
-        { time: '2018-12-24', open: 60.71, high: 60.71, low: 53.39, close: 59.29 },
-        { time: '2018-12-25', open: 68.26, high: 68.26, low: 59.04, close: 60.50 },
-        { time: '2018-12-26', open: 67.71, high: 105.85, low: 66.67, close: 91.04 },
-        { time: '2018-12-27', open: 91.04, high: 121.40, low: 82.70, close: 111.40 },
-        { time: '2018-12-28', open: 111.51, high: 142.83, low: 103.34, close: 131.25 },
-        { time: '2018-12-29', open: 131.33, high: 151.17, low: 77.68, close: 96.43 },
-        { time: '2018-12-30', open: 106.33, high: 110.20, low: 90.39, close: 98.10 },
-        { time: '2018-12-31', open: 109.87, high: 114.69, low: 85.66, close: 111.26 },
-    ]);
-    
-    //TODO: apka ma wyświetlać dane jak w figmie
+  // Load OHLCV when pool or timeframe changes
+  useEffect(() => {
+    setOhlcvLoading(true)
+    getOHLCV(network, activePool, activeTimeframe.value, activeTimeframe.aggregate, 200)
+      .then(data => { setOhlcv(data); setOhlcvLoading(false) })
+      .catch(() => setOhlcvLoading(false))
+  }, [network, activePool, activeTimeframe])
+
+  const isUp = (token?.priceChange24h ?? 0) >= 0
+
   return (
-    <main className="home-page">
-      <h2 className="home-page__title">Trending tokens</h2>
+    <main className="details-page">
 
-    {!loading && !error && (
-        <div className="home-page__grid">
-            {tokens.map(token => (
-            <TokenCard key={token.id} {...token} />
+      {/* Token header */}
+      <div className="details-header">
+        <div className="details-header__left">
+          {token?.imageUrl
+            ? <img className="details-header__icon" src={token.imageUrl} alt={token.symbol}
+                onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }} />
+            : null}
+          <div className="details-header__icon-fallback"
+            style={{ display: token?.imageUrl ? 'none' : 'flex' }}>
+            {tokenLoading ? '?' : (token?.symbol || token?.name || '?')[0].toUpperCase()}
+          </div>
+
+          <div className="details-header__names">
+            {tokenLoading
+              ? <div className="details-header__skel details-header__skel--name" />
+              : <>
+                  <span className="details-header__name">{token?.name}</span>
+                  {token?.symbol && <span className="details-header__symbol">{token.symbol}</span>}
+                </>}
+          </div>
+        </div>
+
+        <div className="details-header__center">
+          {tokenLoading
+            ? <div className="details-header__skel details-header__skel--price" />
+            : <>
+                <span className="details-header__price">{formatPrice(token?.price)}</span>
+                <span className={`details-header__change ${isUp ? 'up' : 'down'}`}>
+                  {isUp ? '▲' : '▼'} {Math.abs(token?.priceChange24h ?? 0).toFixed(2)}%
+                </span>
+              </>}
+        </div>
+
+        <div className="details-header__right">
+          <button className="details-header__fav" aria-label="Dodaj do ulubionych">☆</button>
+        </div>
+      </div>
+
+      {/* Chart + markets */}
+      <div className="details-body">
+        <div className="details-chart-area">
+          <div className="details-timeframes">
+            {TIMEFRAMES.map(tf => (
+              <button key={tf.label}
+                className={`details-tf-btn${activeTimeframe.label === tf.label ? ' details-tf-btn--active' : ''}`}
+                onClick={() => setActiveTimeframe(tf)}>
+                {tf.label}
+              </button>
             ))}
+          </div>
+          <Chart data={ohlcv} loading={ohlcvLoading} />
         </div>
-    )}
-    {!loading && !error && (
-        <div className="chart_conteiner">
+
+        <div className="details-markets">
+          <MarketSelector
+            pools={markets}
+            loading={marketsLoading}
+            activePool={activePool}
+            onSelect={pool => setActivePool(pool.poolAddress)}
+          />
         </div>
-    )}
+      </div>
+
+      <footer className="details-footer">
+        <p>TradingView Lightweight Charts™</p>
+        <p>Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/</p>
+      </footer>
     </main>
   )
 }

@@ -19,6 +19,11 @@
   white-space: nowrap;
 }
 
+.navbar-search-wrap {
+  position: relative;
+  flex: 0 1 280px;
+}
+
 .navbar-search {
   display: flex;
   align-items: center;
@@ -28,13 +33,29 @@
   border-radius: 8px;
   padding: 0 12px;
   height: 36px;
-  flex: 0 1 260px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .navbar-search:focus-within {
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.navbar-search-clear {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.1s;
+}
+
+.navbar-search-clear:hover {
+  opacity: 1;
 }
 
 .navbar-search-icon {

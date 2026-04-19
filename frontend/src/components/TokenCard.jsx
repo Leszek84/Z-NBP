@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import './tokencard.css'
 
 function formatPrice(price) {
@@ -7,14 +8,24 @@ function formatPrice(price) {
   return '$' + price.toExponential(2)
 }
 
-export default function TokenCard({ name, symbol, price, priceChange24h, imageUrl }) {
+/** pool.id = "eth_0xabc..." → { network: "eth", poolAddress: "0xabc..." } */
+function parsePoolId(id = '') {
+  const idx = id.indexOf('_')
+  if (idx === -1) return { network: id, poolAddress: '' }
+  return { network: id.slice(0, idx), poolAddress: id.slice(idx + 1) }
+}
+
+export default function TokenCard({ id, name, symbol, price, priceChange24h, imageUrl }) {
   const isUp = priceChange24h >= 0
   const changeClass = isUp ? 'token-card__change--up' : 'token-card__change--down'
   const arrow = isUp ? '▲' : '▼'
   const changeAbs = Math.abs(priceChange24h).toFixed(2)
 
+  const { network, poolAddress } = parsePoolId(id)
+  const href = `/token/${network}/${poolAddress}`
+
   return (
-    <div className="token-card">
+    <Link className="token-card" to={href}>
       {imageUrl ? (
         <img
           className="token-card__icon"
@@ -45,6 +56,6 @@ export default function TokenCard({ name, symbol, price, priceChange24h, imageUr
           <span>{changeAbs}%</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

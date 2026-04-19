@@ -1,0 +1,95 @@
+.market-selector {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.market-selector__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 12px;
+  letter-spacing: -0.2px;
+  text-align: center;
+}
+
+.market-selector__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.market-selector__skeleton {
+  height: 52px;
+  background: var(--border);
+  border-radius: 8px;
+  animation: ms-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ms-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.market-selector__empty {
+  font-size: 13px;
+  color: var(--text);
+  text-align: center;
+  margin: 12px 0;
+}
+
+.market-selector__item {
+  width: 100%;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+  font-family: var(--sans);
+}
+
+.market-selector__item:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.market-selector__item--active {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.market-selector__dex {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  text-transform: capitalize;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.market-selector__stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.market-selector__price {
+  font-size: 13px;
+  color: var(--text-h);
+  font-family: var(--mono);
+}
+
+.market-selector__vol {
+  font-size: 11px;
+  color: var(--text);
+}
