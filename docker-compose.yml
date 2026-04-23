@@ -1,4 +1,12 @@
 services:
+  frontend:
+    build: ./frontend
+    container_name: znbp-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
   backend:
     build: ./backend
     container_name: znbp-backend

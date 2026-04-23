@@ -1,6 +1,6 @@
 # DexTracker — Frontend
 
-Aplikacja webowa do śledzenia cen tokenów DeFi w czasie rzeczywistym. Dane rynkowe pobierane są z [GeckoTerminal API](https://www.geckoterminal.com/dex-api), autoryzacja obsługiwana przez własny backend Django.
+Aplikacja webowa do śledzenia cen tokenów DeFi w czasie rzeczywistym. Dane rynkowe pobierane są przez **własny backend Django** (który pobiera je z GeckoTerminal API i cachuje w Redis). Autoryzacja oparta o JWT.
 
 ---
 
@@ -8,7 +8,8 @@ Aplikacja webowa do śledzenia cen tokenów DeFi w czasie rzeczywistym. Dane ryn
 
 - **Node.js** v18+
 - **npm** v9+
-- Backend Django uruchomiony na `http://127.0.0.1:8000` (wymagany do logowania/rejestracji)
+- Backend Django uruchomiony na `http://127.0.0.1:8000` (wymagany do wszystkich danych — rynkowych i autoryzacji)
+- Redis uruchomiony i skonfigurowany w backendzie (cache danych rynkowych)
 
 ---
 
@@ -54,8 +55,8 @@ frontend/
 ├── public/                  # Statyczne zasoby (ikony, svg)
 ├── src/
 │   ├── api/
-│   │   ├── gecko.js         # GeckoTerminal API (trending, search, OHLCV, pule)
-│   │   └── index.js         # Backend API (login, register, logout)
+│   │   ├── gecko.js         # Market API — dane rynkowe (przez backend)
+│   │   └── index.js         # Auth API — logowanie, rejestracja, wylogowanie
 │   ├── assets/              # Obrazy, loga
 │   ├── components/
 │   │   ├── Chart.jsx        # Wykres świecowy (lightweight-charts v5)
@@ -91,37 +92,35 @@ frontend/
 
 ## API
 
-### GeckoTerminal (`src/api/gecko.js`)
+Wszystkie wywołania API trafiają do własnego backendu (`http://127.0.0.1:8000`). Backend cachuje odpowiedzi w Redis, by ograniczyć liczbę zapytań do GeckoTerminal.
 
-Bezpłatne, nie wymaga klucza API.
+### Market API (`src/api/gecko.js`)
 
-| Funkcja | Endpoint | Opis |
-|---|---|---|
-| `getTrendingTokens(limit)` | `GET /networks/trending_pools` | Trending pule ze wszystkich sieci |
-| `searchPools(query, limit)` | `GET /search/pools?query=` | Wyszukiwanie tokenów/puli |
-| `getPoolDetails(network, poolAddress)` | `GET /networks/:n/pools/:addr` | Szczegóły puli (nazwa, cena, zmiana) |
-| `getOHLCV(network, pool, timeframe, aggregate, limit)` | `GET /networks/:n/pools/:addr/ohlcv/:tf` | Dane świecowe |
-| `getTokenPools(network, tokenAddress, limit)` | `GET /networks/:n/tokens/:addr/pools` | Pule danego tokena |
+| Funkcja | Endpoint backendu | Cache TTL | Opis |
+|---|---|---|---|
+| `getTrendingTokens(limit)` | `GET /api/market/trending/?limit=` | 60 s | Trending pule ze wszystkich sieci |
+| `searchPools(query, limit)` | `GET /api/market/search/?query=` | 30 s | Wyszukiwanie tokenów/puli |
+| `getPoolDetails(network, poolAddress)` | `GET /api/market/pools/:n/:addr/` | 60 s | Szczegóły puli (nazwa, cena, zmiana 24h) |
+| `getOHLCV(network, pool, timeframe, aggregate, limit)` | `GET /api/market/pools/:n/:addr/ohlcv/:tf/` | 60 s–1 h | Dane świecowe |
+| `getTokenPools(network, tokenAddress, limit)` | `GET /api/market/tokens/:n/:addr/pools/` | 60 s | Lista puli danego tokena |
 
-**Dostępne timeframe'y:**
+**Dostępne timeframe'y wykresu:**
 
-| Label | `timeframe` | `aggregate` |
-|---|---|---|
-| 1D | `day` | 1 |
-| 4H | `hour` | 4 |
-| 1H | `hour` | 1 |
-| 15M | `minute` | 15 |
-| 5M | `minute` | 5 |
+| Label | `timeframe` | `aggregate` | Cache TTL |
+|---|---|---|---|
+| 1D | `day` | 1 | 1 h |
+| 4H | `hour` | 4 | 5 min |
+| 1H | `hour` | 1 | 5 min |
+| 15M | `minute` | 15 | 1 min |
+| 5M | `minute` | 5 | 1 min |
 
-### Backend (`src/api/index.js`)
-
-Backend musi działać na `http://127.0.0.1:8000`.
+### Auth API (`src/api/index.js`)
 
 | Funkcja | Endpoint | Opis |
 |---|---|---|
 | `authApi.login(username_email, password)` | `POST /api/auth/login/` | Logowanie, zwraca JWT |
 | `authApi.register(username, email, password)` | `POST /api/auth/register/` | Rejestracja, zwraca JWT |
-| `authApi.logout(token)` | `POST /api/auth/logout/` | Wylogowanie (blacklist tokena) |
+| `authApi.logout(token)` | `POST /api/auth/logout/` | Wylogowanie (blacklist refresh tokena) |
 
 ---
 
@@ -161,6 +160,6 @@ Projekt używa **CSS custom properties** zdefiniowanych w `src/index.css`. Obsł
 
 ## Znane ograniczenia
 
-- GeckoTerminal API nie wymaga klucza, ale ma limit zapytań (ok. 30 req/min dla darmowego dostępu)
+- Backend musi być uruchomiony — frontend nie odpytuje GeckoTerminal bezpośrednio
 - Endpoint `/api/favorites/` w backendzie nie jest jeszcze zaimplementowany — przycisk ☆ na DetailsPage jest obecnie nieaktywny
 - Wyszukiwarka wymaga minimum 2 znaków
