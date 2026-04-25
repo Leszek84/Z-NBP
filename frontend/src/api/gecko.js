@@ -1,4 +1,5 @@
-const BASE = '/api/market'
+const BASE_API = import.meta.env.VITE_API_URL || ''
+const BASE = `${BASE_API}/api/market`
 
 async function apiFetch(url) {
   const res = await fetch(url)
