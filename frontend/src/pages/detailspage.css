@@ -115,6 +115,16 @@
   color: var(--text-h);
 }
 
+.details-header__fav--active {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.details-header__fav--active:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
 /* Skeleton shimmer */
 .details-header__skel {
   background: var(--code-bg);

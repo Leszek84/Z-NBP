@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPoolDetails, getOHLCV, getTokenPools } from '../api/gecko.js'
+import { useFavorites } from '../hooks/useFavorites.js'
 import Chart from '../components/Chart.jsx'
 import MarketSelector from '../components/MarketSelector.jsx'
 import './detailspage.css'
@@ -34,6 +35,9 @@ export default function DetailsPage() {
   const [markets, setMarkets] = useState([])
   const [marketsLoading, setMarketsLoading] = useState(false)
   const [activePool, setActivePool] = useState(poolAddress)
+
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const fav = isFavorite(network, poolAddress)
 
   // Load token details + markets
   useEffect(() => {
@@ -99,7 +103,14 @@ export default function DetailsPage() {
         </div>
 
         <div className="details-header__right">
-          <button className="details-header__fav" aria-label="Dodaj do ulubionych">☆</button>
+          <button
+            className={`details-header__fav${fav ? ' details-header__fav--active' : ''}`}
+            aria-label={fav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+            title={fav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}
+            onClick={() => toggleFavorite(network, poolAddress)}
+          >
+            {fav ? '★' : '☆'}
+          </button>
         </div>
       </div>
 
