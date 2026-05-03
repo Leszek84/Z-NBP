@@ -10,3 +10,7 @@ Thumbs.db
 
 opencollection*
 .vscode/settings.json
+
+infra/*
+!infra/deploy.ps1
+!infra/*.bicep
