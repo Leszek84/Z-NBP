@@ -1,5 +1,14 @@
 .home-page {
   padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.home-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .home-page__title {
@@ -9,6 +18,20 @@
   margin: 0 0 24px;
   text-align: left;
   letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-page__title-star {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.home-page__fav-empty {
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
 }
 
 .home-page__grid {

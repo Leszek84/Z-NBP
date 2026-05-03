@@ -31,7 +31,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --text: #9ca3af;
     --text-h: #f9fafb;
     --bg: #111827;
@@ -45,9 +45,37 @@
       rgba(0, 0, 0, 0.5) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
   }
 
-  #social .button-icon {
+  :root:not([data-theme="light"]) #social .button-icon {
     filter: invert(1) brightness(2);
   }
+}
+
+[data-theme="dark"] {
+  --text: #9ca3af;
+  --text-h: #f9fafb;
+  --bg: #111827;
+  --border: #1f2937;
+  --code-bg: #1f2937;
+  --accent: #e5e7eb;
+  --accent-bg: rgba(229, 231, 235, 0.08);
+  --accent-border: rgba(229, 231, 235, 0.2);
+  --social-bg: rgba(31, 41, 55, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.5) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
+}
+
+[data-theme="light"] {
+  --text: #6b7280;
+  --text-h: #111827;
+  --bg: #ffffff;
+  --border: #e5e7eb;
+  --code-bg: #f9fafb;
+  --accent: #374151;
+  --accent-bg: rgba(55, 65, 81, 0.08);
+  --accent-border: rgba(55, 65, 81, 0.35);
+  --social-bg: rgba(249, 250, 251, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.08) 0 10px 15px -3px, rgba(0, 0, 0, 0.04) 0 4px 6px -2px;
 }
 
 body {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 import { searchPools } from '../api/gecko.js'
 import LoginModal from './modals/LoginModal.jsx'
 import RegisterModal from './modals/RegisterModal.jsx'
@@ -25,6 +26,7 @@ function sortByRelevance(results, query) {
 
 export default function Navbar() {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const [loginOpen, setLoginOpen] = useState(false)
   const [registerOpen, setRegisterOpen] = useState(false)
 
@@ -163,6 +165,26 @@ export default function Navbar() {
         </div>
 
         <Link className="navbar-nav-link" to="/">Home</Link>
+
+        <button
+          className="navbar-theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
+          title={theme === 'dark' ? 'Tryb jasny' : 'Tryb ciemny'}
+        >
+          {theme === 'dark' ? (
+            /* Sun icon */
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+          ) : (
+            /* Moon icon */
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          )}
+        </button>
 
         <div className="navbar-actions">
           {user ? (
